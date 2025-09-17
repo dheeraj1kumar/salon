@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{%block title %}{%endblock%}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; line-height:1.6; color:#333; background:#fff;}
+        .container { max-width:1200px; margin:0 auto; padding:0 20px;}
+
+        
+        .header { background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); position:fixed; top:0; width:100%; z-index:1000; box-shadow:0 2px 20px rgba(0,0,0,0.1);}
+        .navbar { padding:1rem 0;}
+        .nav-container { display:flex; justify-content:space-between; align-items:center; max-width:1200px; margin:0 auto; padding:0 20px;}
+        .logo h2 { color:white; font-size:1.8rem; font-weight:700;}
+        .logo i { margin-right:10px; color:#ffd700;}
+        .nav-menu { display:flex; list-style:none; gap:2rem;}
+        .nav-link { color:white; text-decoration:none; font-weight:500; transition:.3s; position:relative;}
+        .nav-link:hover { color:#ffd700;}
+        .nav-link::after { content:''; position:absolute; width:0; height:2px; bottom:-5px; left:0; background:#ffd700; transition:.3s;}
+        .nav-link:hover::after { width:100%;}
+        .auth-buttons { display:flex; gap:1rem;}
+        .btn-login,.btn-signup,.btn-logout { padding:.5rem 1.5rem; border:none; border-radius:25px; cursor:pointer; font-weight:500; transition:.3s;}
+        .btn-login { background:transparent; color:white; border:2px solid white;}
+        .btn-login:hover { background:white; color:#667eea;}
+        .btn-signup,.btn-logout { background:#ffd700; color:#333;}
+        .btn-signup:hover,.btn-logout:hover { background:#ffed4e; transform:translateY(-2px);}
+        .hamburger { display:none; flex-direction:column; cursor:pointer;}
+        .bar { width:25px; height:3px; background:white; margin:3px 0; transition:.3s;}
+
+        
+        
+        .modal { display:none; position:fixed; z-index:2000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(5px);}
+        .modal-content { background:white; margin:10% auto; padding:2rem; border-radius:15px; width:90%; max-width:500px; position:relative; box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+        .close { color:#aaa; font-size:28px; font-weight:bold; cursor:pointer; position:absolute; right:20px; top:15px;}
+        .close:hover { color:#333;}
+        .modal-content h2 { color:#333; margin-bottom:1.5rem; text-align:center;}
+        .modal-content form { display:flex; flex-direction:column; gap:1rem;}
+        .modal-content input { padding:1rem; border:2px solid #f0f0f0; border-radius:10px; font-family:inherit; transition:border-color .3s;}
+        .modal-content input:focus { border-color:#667eea; outline:none;}
+        .modal-content .signup{ background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:white; border:none; padding:1rem; border-radius:25px; cursor:pointer; font-weight:600; transition:.3s;}
+        .modal-content .verify{ background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:white; border:none; padding:1rem; border-radius:25px; cursor:pointer; font-weight:600; transition:.3s;}
+        .signup-error, .login-error, .error, .otp-error { color:#dc2626; font-size:0.9rem; min-height:1.2rem; text-align:center; }
+        .modal-content .login{ background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:white; border:none; padding:1rem; border-radius:25px; cursor:pointer; font-weight:600; transition:.3s;}
+        .modal-content button:hover { transform:translateY(-2px); box-shadow:0 4px 15px rgba(102,126,234,0.3);}
+        .modal-content p { text-align:center; margin-top:1rem; color:#666;}
+        .modal-content a { color:#667eea; text-decoration:none; font-weight:500;}
+        .modal-content a:hover { text-decoration:underline;}
+
+
+
+.cart-link{position:relative;display:inline-flex;align-items:center;justify-content:center;width:40px; height:40px;color:#fff;margin-right:8px;}
+.cart-link:hover{ color:#ffd700; }  
+.icon-cart{ width:24px; height:24px; }
+.cart-badge{
+  position:absolute;
+  top:-6px; right:-6px;
+  min-width:18px; height:18px;
+  padding:0 5px;
+  border-radius:999px;
+  background:#ef4444;   
+  color:#fff;
+  font-size:11px;
+  line-height:18px;
+  text-align:center;
+  font-weight:700;
+  border:2px solid rgba(0,0,0,.2); 
+  
+}
+.link-btn {
+    background: none;
+    border: none;
+    color: #d4af37; 
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.link-btn:hover {
+    
+    text-decoration: none;
+    transform: scale(1.05);
+}
+
+.link-btn:focus {
+    color: #f5d76e; 
+}
+
+
+
+.footer {
+  background: #0d0d0d;
+  color: #f5f5f5;
+  padding: 4rem 2rem 2rem;
+  font-family: 'Poppins', sans-serif;
+  position: relative;
+}
+
+.footer-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 2.5rem;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.footer-brand .logo {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #e4c590; 
+  letter-spacing: 1px;
+}
+
+.footer-brand .logo span {
+  color: #fff;
+}
+
+.footer-brand p {
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+  color: #bbb;
+}
+
+.footer-links h4,
+.footer-contact h4,
+.footer-social h4 {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  color: #e4c590;
+  position: relative;
+}
+
+.footer-links ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-links ul li {
+  margin-bottom: 0.6rem;
+}
+
+.footer-links ul li a {
+  color: #bbb;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.footer-links ul li a:hover {
+  color: #e4c590;
+}
+
+.footer-contact p {
+  margin: 0.4rem 0;
+  font-size: 0.95rem;
+  color: #bbb;
+}
+
+.footer-contact i {
+  margin-right: 0.6rem;
+  color: #e4c590;
+}
+
+.social-icons a {
+  display: inline-block;
+  margin-right: 0.8rem;
+  font-size: 1.2rem;
+  color: #bbb;
+  transition: 0.3s;
+}
+
+.social-icons a:hover {
+  color: #e4c590;
+}
+
+.footer-bottom {
+  border-top: 1px solid rgba(255,255,255,0.1);
+  text-align: center;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  font-size: 0.85rem;
+  color: #888;
+}
+.logo span {
+  color: #fff;
+}
+</style>
+<style>
+  .rb-chat-btn {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg,#667eea,#764ba2);
+  color: #fff;
+  border: 0;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(0,0,0,.2);
+  font-size: 20px;
+  z-index: 9999; 
+}
+
+.rb-chat-panel {
+  position: fixed;
+  right: 20px;
+  bottom: 90px;
+  width: 320px;
+  max-height: 60vh;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(0,0,0,.25);
+  overflow: hidden;
+  display: none;
+  flex-direction: column;
+  z-index: 9999; 
+}
+
+.rb-chat-header {
+  background: linear-gradient(135deg,#667eea,#764ba2);
+  color: #fff;
+  padding: 14px 16px;
+  font-weight: 700;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rb-chat-body {
+  padding: 12px;
+  overflow-y: auto;
+  height: 320px;
+  background: #f8fafc;
+}
+
+.rb-msg {
+  margin: 8px 0;
+  max-width: 85%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  line-height: 1.4;
+}
+
+.rb-user {
+  background: #111827;
+  color: #fff;
+  margin-left: auto;
+  border-bottom-right-radius: 4px;
+}
+
+.rb-bot {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  color: #111827;
+  border-bottom-left-radius: 4px;
+}
+
+.rb-chat-input {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  border-top: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.rb-chat-input input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  outline: none;
+}
+
+.rb-chat-input button {
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #111827;
+  color: #fff;
+}
+
+</style>
+    {% block css %}{% endblock %}
+</head>
+<body>
+
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo"><h2 style="color:#ffd700;"><i class="fas fa-cut"></i>Royal<span>Barber</span></h2>
+                  
+                </div>
+                <ul class="nav-menu" id="nav-menu">
+                    <li><a href="/" class="nav-link">Home</a></li>
+                    <li><a href="/#services" class="nav-link">Services</a></li>
+                    <li><a href="/#contact" class="nav-link">Contact</a></li>
+                    <li><a href="/booking" class="nav-link" id="bookings-link" style="display: {% if user.is_authenticated %} inline-block {% else %}none{% endif %};">My Bookings</a></li> 
+                    {%if user.is_superuser %}
+                    <li><a href="/dashboard" class="nav-link">Dashboard</a></li>
+                    {%endif%}
+                </ul>
+                
+                <div class="auth-buttons">
+                    
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'view_cart' %}" class="cart-link" aria-label="Cart">
+                      
+                      <svg class="icon-cart" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill="currentColor" d="M7 4H5a1 1 0 0 0 0 2h1.1l1.6 7.2A2 2 0 0 0 9.7 15H17a1 1 0 1 0 0-2H9.7l-.2-.9L19 10.5a1 1 0 0 0 .8-.7l1.2-4A1 1 0 0 0 20 4H8.3L8 2.9A2 2 0 0 0 6.1 2H4a1 1 0 0 0 0 2h2l1.6 7.2"></path>
+                        <circle cx="9" cy="20" r="1.7" fill="currentColor"></circle>
+                        <circle cx="17" cy="20" r="1.7" fill="currentColor"></circle>
+                      </svg>
+                      {% if cart_count and cart_count > 0 %}
+                        <span class="cart-badge" aria-label="{{ cart_count }} items in cart">{{ cart_count }}</span>
+                      {% endif %}
+                    </a>
+                    {% endif %}
+                    
+                    <button class="btn-logout" id="logout-btn"  style="display: {% if user.is_authenticated %} inline-block {% else %}none{% endif %};" >Logout</button>
+                    <button class="btn-login" id="login-btn" style="display: {% if user.is_authenticated %}none{% else %}inline-block{% endif %};">Login</button>
+                    <button class="btn-signup" id="signup-btn" style="display: {% if user.is_authenticated %}none{% else %}inline-block{% endif %};">Sign Up</button>
+                </div> 
+              </div>
+            </div>
+        </nav>
+    </header>
+    {% if messages %}
+  <div class="flash-wrap">
+    {% for message in messages %}
+      <div class="flash {{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+{% endif %}
+    {% block content %}
+
+    {% endblock %}
+    <div class="rb-chat-panel" id="rbChat">
+      <div class="rb-chat-header">
+        <span>Royal Barber Assistant</span>
+        <button id="rbClose" style="background:transparent;border:0;color:#fff;font-size:18px;cursor:pointer;">✕</button>
+      </div>
+      <div class="rb-chat-body" id="rbBody">
+        <div class="rb-msg rb-bot">Hi! How Can I Help you?</div>
+      </div>
+      <div class="rb-chat-input">
+        <input id="rbInput" placeholder="Type your question..." />
+        <button id="rbSend">Send</button>
+      </div>
+    </div>
+    <button class="rb-chat-btn" id="rbOpen" aria-label="Chat"><i class="fas fa-comments"></i></button>
+    
+   
+<footer class="footer" >
+  <div class="footer-container">
+    
+  
+    <div class="footer-brand">
+      <h2 class="logo">Royal<span>Barber</span></h2>
+      <p>Luxury Grooming • Timeless Style</p>
+    </div>
+
+    
+    <div class="footer-links">
+      <h4>Quick Links</h4>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/#services">Services</a></li>
+        <li><a href="/#contact">Contact</a></li>
+      </ul>
+    </div>
+
+    
+    <div class="footer-contact">
+      <h4>Get in Touch</h4>
+      <p><i class="fas fa-map-marker-alt"></i>Cyber Park, Noida-sector 58<br>UttarPradesh, 201301</p>
+      <p><i class="fas fa-phone-alt"></i> +91 9876XXXXXX</p>
+      <p><i class="fas fa-envelope"></i> support@royalbarber.com</p>
+    </div>
+
+   
+    <div class="footer-social">
+      <h4>Follow Us</h4>
+      <div class="social-icons">
+        <a href="#"><i class="fab fa-facebook-f"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-twitter"></i></a>
+        <a href="#"><i class="fab fa-youtube"></i></a>
+      </div>
+    </div>
+
+  </div>
+
+  
+  <div class="footer-bottom">
+    <p>&copy; 2025 Royal Barber. All rights reserved.</p>
+  </div>
+</footer>
+
+
+
+    
+
+    
+    <div id="signup-modal" class="modal">
+        <div class="modal-content">
+            <div id="signup-error" class="error"></div> 
+          <span class="close" data-modal="signup">&times;</span>
+          <h2>Sign Up</h2>
+          <form id="signup-form">
+            {% csrf_token %}
+            <input type="text" name="username" placeholder="Full Name" required>
+            <input type="email" name="email" placeholder="Email">
+            <input type="phone" name="phone" placeholder="Phone" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <input type="password" name="confirm_password" placeholder="Confirm Password" required>
+            <button type="submit" class="signup" id="signup">Sign Up</button>
+          </form>
+          
+           
+          <div class="modal-footer" style="margin-top:3rem; text-align:center;">
+            <span>Already have an account?</span>
+            <button type="button" class="link-btn" id="open-login">Log in</button>
+          </div>
+        </div>
+      </div>
+      
+    
+      <div id="otp-modal" class="modal">
+        <div class="modal-content">
+            <div id="otp-error" class="error"></div>
+          <span class="close" data-modal="otp">&times;</span>
+          <h2>Verify OTP</h2>
+          <form id="otp-form">
+            {% csrf_token %}
+            <input type="text" name="otp" placeholder="Enter OTP" required><br>
+            <input type="hidden" name="phone" id="otp-phone">
+            <button type="submit" class="verify" id='verify'>Verify</button>
+          </form>
+          
+        </div>
+      </div>
+      
+
+      <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <div id="login-error" class="error"></div>
+          <span class="close" data-modal="login">&times;</span>
+          <h2>Login</h2>
+          <form id="login-form" style="margin-bottom: 20px;">
+            {% csrf_token %}
+            <input type="phone" name="phone" placeholder="Phone" required>
+            <input type="password" name="password" placeholder="Password" required><br>
+            <button type="submit" class="login" id="login">Login</button>
+          </form>
+          <a href="/password-reset/"  class="forgot" id="open-forgot" style="text-decoration: none; margin-top: 10px;">Forgot Password?</a>
+          
+          <div class="modal-footer" style="margin-top:3rem; text-align:center;">
+            <span>New here?</span>
+            <button type="button" class="link-btn" id="open-signup" >Create an account</button>
+            </div>
+            
+        </div>
+        
+      </div>
+      <style>
+        .flash-wrap {
+          position: fixed;
+          top: 100px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: auto;
+          z-index: 9999;
+        }
+        .flash {
+          padding: 10px 16px;
+          margin-bottom: 10px;
+          border-radius: 6px;
+          font-size: 14px;
+          color: #fff;
+        }
+        .flash.success { background: #16a34a; }  
+        .flash.error   { background: #dc2626; }  
+        .flash.warning { background: #f59e0b; color: #000; }  
+        .flash.info    { background: #0ea5e9; }  
+        </style>
+     
+
+
+
+      
+      <script>
+        document.addEventListener("DOMContentLoaded", () => {
+  setTimeout(() => {
+    document.querySelectorAll(".flash").forEach(el => el.remove());
+  }, 2000);
+});
+        
+        function toast(msg, type = "info") {
+          const colors = {
+            success: "#16a34a", // green
+            error:   "#dc2626", // red
+            warning: "#d97706", // amber
+            info:    "#111111"  // dark
+          };
+        
+          let el = document.createElement("div");
+          el.textContent = msg;
+          el.style.cssText = `
+              position:fixed;
+              left:50%;
+              top:20px;
+              transform:translateX(-50%);
+              background:${colors[type] || colors.info};
+              color:#fff;
+              padding:10px 14px;
+              border-radius:8px;
+              z-index:9999;
+              box-shadow:0 6px 20px rgba(0,0,0,.25);
+              opacity:1;
+              transition:opacity .3s;`;
+          document.body.appendChild(el);
+        
+          
+          setTimeout(() => { el.style.opacity = "0"; }, 1500);
+          setTimeout(() => el.remove(), 2000);
+        }
+        
+        
+        function getCookie(name) {
+          let cookieValue = null;
+          if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";");
+            for (let cookie of cookies) {
+              cookie = cookie.trim();
+              if (cookie.startsWith(name + "=")) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+              }
+            }
+          }
+          return cookieValue;
+        }
+        const csrftoken = getCookie("csrftoken");
+        
+        
+        const modals = {
+          signup: document.getElementById("signup-modal"),
+          login: document.getElementById("login-modal"),
+          otp: document.getElementById("otp-modal"),
+          forgot: document.getElementById("forgot-modal")
+        };
+        
+        const signupBtn = document.getElementById("signup-btn");
+        const loginBtn = document.getElementById("login-btn");
+        const logoutBtn = document.getElementById("logout-btn");
+        
+
+        if (signupBtn) signupBtn.addEventListener("click", () => modals.signup.style.display = "block");
+        if (loginBtn) loginBtn.addEventListener("click", () => modals.login.style.display = "block");
+      
+        
+        document.querySelectorAll(".close").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const modalName = btn.dataset.modal;
+            if (modals[modalName]) modals[modalName].style.display = "none";
+          });
+        });
+        
+        
+        document.getElementById("open-signup")?.addEventListener("click", () => {
+          document.querySelector('#login-modal .close')?.click();
+          signupBtn?.click();
+        });
+        document.getElementById("open-login")?.addEventListener("click", () => {
+          document.querySelector('#signup-modal .close')?.click();
+          loginBtn?.click();
+        });
+        
+        
+        window.onclick = function(event) {
+          for (let key in modals) {
+            if (event.target === modals[key]) {
+              modals[key].style.display = "none";
+            }
+          }
+        };
+        
+        
+        const signupForm = document.getElementById("signup-form");
+        if (signupForm) {
+          signupForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData(signupForm);
+        
+            const response = await fetch("/user/signup", {
+              method: "POST",
+              headers: { "X-CSRFToken": csrftoken },
+              body: formData
+            });
+            const data = await response.json();
+        
+            if (data.success && data.otp_required) {
+              modals.otp.style.display = "block";
+              modals.signup.style.display = "none";
+              toast("OTP sent to your phone.","success");
+              document.getElementById("otp-phone").value = formData.get("phone");
+            } else {
+              document.getElementById("signup-error").innerText = data.error || "Signup failed.";
+            }
+          });
+        }
+        
+        
+        const otpForm = document.getElementById("otp-form");
+        if (otpForm) {
+          otpForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData(otpForm);
+        
+            const response = await fetch("/user/verify_otp", {
+              method: "POST",
+              headers: { "X-CSRFToken": csrftoken },
+              body: formData
+            });
+            const data = await response.json();
+        
+            if (data.success) {
+              modals.otp.style.display = "none";
+              toast("Signup successful! You are logged in.","success");
+              setTimeout(() => window.location.reload(), 800);
+            } else {
+              document.getElementById("otp-error").innerText = data.error || "OTP verification failed.";
+            }
+          });
+        }
+        
+        
+        const loginForm = document.getElementById("login-form");
+        if (loginForm) {
+          loginForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData(loginForm);
+        
+            const response = await fetch("/user/login", {
+              method: "POST",
+              headers: { "X-CSRFToken": csrftoken },
+              body: formData
+            });
+            const data = await response.json();
+        
+            if (data.success) {
+              modals.login.style.display = "none";
+              toast("Login successful!","success");
+              setTimeout(() => window.location.href = "/", 1000);
+            } else {
+              document.getElementById("login-error").innerText = data.error || "Login failed.";
+            }
+          });
+        }
+        
+        
+        if (logoutBtn) {
+  logoutBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
+
+    
+    if (!confirm("Are you sure you want to logout?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch("/user/logout", {   
+        method: "POST",
+        headers: {
+          "X-CSRFToken": csrftoken,
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        body: JSON.stringify({})
+      });
+
+      let data = {};
+      try { 
+        data = await response.json(); 
+      } catch {}
+
+      if (response.ok && (data.success === true || data.status === "success")) {
+        toast("Logged out successfully.", "success");
+        setTimeout(() => window.location.replace("/"), 600);
+      } else {
+        toast(data.message || "Logout failed. Try again.", "error");
+      }
+    } catch (e) {
+      toast("Network error. Try again.", "error");
+    }
+  });
+}
+
+        
+        
+        function updateCartBadge(n){
+          const link = document.querySelector('.cart-link');
+          if(!link) return;
+          let badge = link.querySelector('.cart-badge');
+          if(n > 0){
+            if(!badge){
+              badge = document.createElement('span');
+              badge.className = 'cart-badge';
+              link.appendChild(badge);
+            }
+            badge.textContent = n;
+          }
+          else if(badge){
+            badge.remove();
+          }
+        }
+        
+        
+        
+        </script>
+        <script>
+        
+          const panel = document.getElementById('rbChat');
+          const openBtn = document.getElementById('rbOpen');
+          const closeBtn = document.getElementById('rbClose');
+          const body = document.getElementById('rbBody');
+          const input = document.getElementById('rbInput');
+          const send = document.getElementById('rbSend');
+        
+          openBtn.onclick = () => { panel.style.display = 'flex'; input.focus(); };
+          closeBtn.onclick = () => { panel.style.display = 'none'; };
+        
+          function addMsg(text, who='bot') {
+            const div = document.createElement('div');
+            div.className = 'rb-msg ' + (who === 'user' ? 'rb-user' : 'rb-bot');
+            div.textContent = text;
+            body.appendChild(div);
+            body.scrollTop = body.scrollHeight;
+          }
+        
+          async function ask() {
+            const msg = (input.value || '').trim();
+            if (!msg) return;
+            addMsg(msg, 'user');
+            input.value = '';
+        
+            
+            const typing = document.createElement('div');
+            typing.className = 'rb-msg rb-bot';
+            typing.textContent = '…';
+            body.appendChild(typing);
+            body.scrollTop = body.scrollHeight;
+        
+            try {
+              const res = await fetch('/ai/ask', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({ message: msg })
+              });
+              const data = await res.json();
+              typing.remove();
+              if (data?.success) addMsg(data.answer, 'bot');
+              else addMsg('Sorry, something went wrong.', 'bot');
+            } catch (e) {
+              typing.remove();
+              addMsg('Network error. Please try again.', 'bot');
+            }
+          }
+        
+          send.onclick = ask;
+          input.addEventListener('keydown', (e) => { if (e.key === 'Enter') ask(); });
+        </script>
+               
+{% block js %}
+
+  
+{% endblock %}
+   
+</body>
+</html>

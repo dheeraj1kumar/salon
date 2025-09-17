@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}My Bookings{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 100px; margin-bottom: 300px;">
+  <h1>My Bookings</h1>
+
+  {% if active_bookings %}
+    <section class="section">
+      <h2>Active</h2>
+      <ul class="booking-list">
+        {% for ctx in active_bookings %}
+          {% with b=ctx.obj %}
+          <li class="booking-card active">
+            <div class="row">
+              <div class="left">
+                <div class="service">{{ b.service.name }}</div>
+                <div class="dt">{{ b.date|date:"D, M j, Y" }} at {{ b.slot|time:"H:i" }}</div>
+                <div class="status">
+                  Status:
+                  <span class="badge badge-{{ b.status }}">{{ b.status|title }}</span>
+                    {% with badge=b.payment_badge %}
+                      <span class="badge badge-{{ badge.0 }}">{{ badge.1 }}</span>
+                    {% endwith %}
+                </div>
+
+                <div class="meta">
+                  {% if b.staff %}
+                    <span>Staff: {{ b.staff.user.get_full_name|default:b.staff.user.username|default:b.staff.name }}</span>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="right">
+                <div class="price">₹ {{ b.service.price }}</div>
+
+                {% if ctx.can_cancel %}
+                  <form method="post" action="{% url 'cancel_booking' b.pk %}" onsubmit="return confirm('Cancel this booking?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-cancel" style="margin-top: 10px;">Cancel</button>
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+          </li>
+          {% endwith %}
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+
+  <section class="section" style="margin-bottom: 200px;">
+    <h2>Past</h2>
+    {% if past_bookings %}
+      <ul class="booking-list">
+        {% for ctx in past_bookings %}
+          {% with b=ctx.obj %}
+          <li class="booking-card past">
+            <div class="row">
+              <div class="left">
+                <div class="service">{{ b.service.name }}</div>
+                <div class="dt">{{ b.date|date:"D, M j, Y" }} at {{ b.slot|time:"H:i" }}</div>
+                <div class="status">
+                  Status:
+                  <span class="badge badge-{{ b.status }}">{{ b.status|title }}</span>
+                  <span class="badge badge-{{ b.payment_status }}">{{ b.payment_status}}</span>
+                </div>
+
+                <div class="meta">
+                  {% if b.staff %}
+                    <span>Staff: {{ b.staff.user.get_full_name|default:b.staff.user.username|default:b.staff.name }}</span>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="right">
+                <div class="price">₹ {{ b.service.price }}</div>
+              </div>
+            </div>
+          </li>
+          {% endwith %}
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No past bookings yet.</p>
+    {% endif %}
+  </section>
+</div>
+
+<style>
+  .container { max-width: 960px; padding: 0 16px; margin-top: 100px;}
+  .section { margin-top: 24px; }
+  .booking-list { list-style: none; margin: 0; padding: 0; }
+  .booking-card { border: 1px solid #eee; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; background: #fff; }
+  .booking-card.active { border-color: #cce5ff; }
+  .booking-card.past { opacity: 0.95; }
+  .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .left { min-width: 0; }
+  .service { font-weight: 600; }
+  .dt { color: #666; margin-top: 4px; }
+  .price { font-weight: 600; text-align: right; }
+  .badge { padding: 2px 8px; border-radius: 999px; font-size: 12px; text-transform: capitalize; }
+  .badge-upcoming { background: #eaf5ff; color: #0b6efd; }
+  .badge-pending { background: #fff3cd; color: #8a6d3b; }
+  .badge-completed { background: #e2f7e1; color: #2e7d32; }
+  .badge-canceled { background: #fde2e1; color: #c62828; }
+  
+  
+  .badge-unpaid { background: #ffe4e6; color: #b91c1c; }          /* red */
+  .badge-paid { background: #dcfce7; color: #166534; }            /* green */
+  .badge-refund-pending { background: #fff7ed; color: #b45309; }  /* orange */
+  .badge-refunded { background: #e0e7ff; color: #3730a3; }        /* indigo */
+
+  .btn { padding: 8px 12px; border: 0; border-radius: 6px; cursor: pointer; }
+  .btn-cancel { background: #f8d7da; color: #842029; }
+  .btn-cancel[disabled] { opacity: .6; cursor: not-allowed; }
+</style>
+{% endblock %}

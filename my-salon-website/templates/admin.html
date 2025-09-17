@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+body {
+  background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+  font-family: 'Poppins', sans-serif;
+  color: #333;
+}
+
+
+.dashboard-container {
+  max-width: 1200px;
+  margin: 80px auto 150px;
+  padding: 30px;
+}
+
+
+.dashboard-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #764ba2;
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+
+.admin-actions {
+  text-align: center;
+  margin-bottom: 30px;
+}
+.admin-actions .btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 10px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  margin: 5px;
+  transition: 0.3s;
+}
+.admin-actions .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(102,126,234,0.3);
+}
+
+
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 15px;
+  box-shadow: 0px 8px 30px rgba(0,0,0,0.1);
+  margin-bottom: 40px;
+  background: #fff;
+}
+
+
+.dashboard-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 15px;
+  min-width: 800px;
+}
+.dashboard-table th, .dashboard-table td {
+  padding: 14px 12px;
+  text-align: center;
+}
+.dashboard-table thead th {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.dashboard-table tbody tr:nth-child(even) {
+  background: #f9f9f9;
+}
+.dashboard-table tbody tr:hover {
+  background: #f1f7ff;
+  transform: scale(1.01);
+  transition: 0.2s;
+}
+
+
+.badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-block;
+}
+.badge.upcoming { background: #007bff20; color: #007bff; }
+.badge.pending { background: #ffc10720; color: #ff9800; }
+.badge.completed { background: #28a74520; color: #28a745; }
+.badge.canceled { background: #dc354520; color: #dc3545; }
+
+
+.btn-success {
+  background: #28a745;
+  color: #fff;
+  border-radius: 20px;
+  padding: 6px 12px;
+  text-decoration: none;
+}
+.btn-danger {
+  background: #dc3545;
+  color: #fff;
+  border-radius: 20px;
+  padding: 6px 12px;
+  text-decoration: none;
+}
+.btn-success:hover, .btn-danger:hover {
+  opacity: 0.85;
+  transform: translateY(-2px);
+  transition: 0.2s;
+}
+
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  overflow: auto;
+  background: rgba(0,0,0,0.5);
+}
+.modal-content { background:white; margin:10% auto; padding:2rem; border-radius:15px; width:90%; max-width:500px; position:relative; box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+
+.modal-content h2 {
+  color: #764ba2;
+  margin-bottom: 20px;
+}
+.modal-content form input,
+.modal-content form select,
+.modal-content form textarea {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 2px solid #f0f0f0;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+.modal-content form button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.modal-content form button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(102,126,234,0.3);
+}
+.close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 28px;
+  cursor: pointer;
+}
+</style>
+
+<div class="dashboard-container">
+  <h2 class="dashboard-title">Dashboard</h2>
+
+  
+  <div class="admin-actions">
+    <button id="open-service-modal" class="btn">Add Service</button>
+    <button id="open-staff-modal" class="btn">Add Staff</button>
+</div>
+
+
+  <h3> Today's Bookings</h3>
+  {% include 'booking_table.html' with bookings=todays_bookings %}
+
+  
+  <h3>Upcoming Bookings</h3>
+  {% include 'booking_table.html' with bookings=upcoming_bookings %}
+
+  <h3>Past Bookings</h3>
+  {% include 'booking_table.html' with bookings=past_bookings %}
+
+  
+</div>
+
+
+<div id="service-modal" class="modal">
+  <div class="modal-content">
+    <span class="close" id="close-service-modal">&times;</span>
+    <h2>Add Service</h2>
+    <form method="POST" enctype="multipart/form-data" action="{% url 'add_service' %}">
+      {% csrf_token %}
+      {{ service_form.as_p }}
+      <button type="submit">Save Service</button>
+    </form>
+  </div>
+</div>
+
+
+<div id="staff-modal" class="modal">
+  <div class="modal-content">
+    <span class="close" id="close-staff-modal">&times;</span>
+    <h2>Add Staff</h2>
+    <form method="POST" action="{% url 'add_staff' %}">
+      {% csrf_token %}
+      {{ staff_form.as_p }}
+      <button type="submit">Save Staff</button>
+    </form>
+  </div>
+</div>
+
+<script>
+const serviceModal = document.getElementById('service-modal');
+const staffModal = document.getElementById('staff-modal');
+
+document.getElementById('open-service-modal').onclick = () => serviceModal.style.display = 'block';
+document.getElementById('open-staff-modal').onclick = () => staffModal.style.display = 'block';
+
+document.getElementById('close-service-modal').onclick = () => serviceModal.style.display = 'none';
+document.getElementById('close-staff-modal').onclick = () => staffModal.style.display = 'none';
+
+window.onclick = (event) => {
+  if(event.target == serviceModal) serviceModal.style.display = 'none';
+  if(event.target == staffModal) staffModal.style.display = 'none';
+};
+</script>
+
+{% endblock %}
