@@ -9,7 +9,7 @@ def default_duration():
 class Service(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True)
     description = models.CharField(max_length=10000, blank=True, null=True)
-    image = models.ImageField(upload_to='services/', blank=True, null=True)
+    image = models.URLField(blank=True, null=True) 
     price = models.DecimalField(max_digits=10, default=0.00, decimal_places=2)
     duration = models.DurationField(default=default_duration)
 
