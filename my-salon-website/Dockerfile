@@ -1,18 +1,23 @@
-FROM python:3.9
+# Use official Python image
+FROM python:3.10-slim
 
-WORKDIR /app/backend
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
-COPY requirements.txt /app/backend
-RUN apt-get update \
-    && apt-get upgrade -y \
-    && apt-get install -y gcc default-libmysqlclient-dev pkg-config \
-    && rm -rf /var/lib/apt/lists/*
+# Set work directory
+WORKDIR /code
 
+# Install dependencies
+COPY requirements.txt /code/
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
 
-# Install app dependencies
-RUN pip install mysqlclient
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy project files
+COPY . /code/
 
-COPY . /app/backend
-
+# Expose port 8000
 EXPOSE 8000
+
+# Run the app
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
