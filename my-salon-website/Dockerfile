@@ -1,20 +1,18 @@
 FROM python:3.9
 
-# Prevent Python from buffering stdout/stderr
-ENV PYTHONUNBUFFERED=1
+WORKDIR /app/backend
 
-# Create and set working directory
-WORKDIR /code
+COPY requirements.txt /app/backend
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && apt-get install -y gcc default-libmysqlclient-dev pkg-config \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies
-COPY requirements.txt .
+
+# Install app dependencies
+RUN pip install mysqlclient
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy project files
-COPY . .
+COPY . /app/backend
 
-# Run migrations at container start
-CMD ["sh", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:6006"]
-
-# Expose port
-EXPOSE 6006
+EXPOSE 8000
