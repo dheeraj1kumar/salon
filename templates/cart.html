@@ -1,0 +1,500 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Cart{% endblock %}
+
+{% block content %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<div class="cart-page container" style="margin-top: 100px; margin-bottom: 100px;">
+  <div class="cart-header">
+    <div class="location">
+      
+      <b><h2 class="sub" style="color:grey">Select Date &amp; Time of Appointment</h2></b>
+    </div>
+    <div class="actions">
+      <a class="support" href="/#contact">Support</a>
+    </div>
+  </div>
+
+  <div class="cart-grid">
+
+    <section class="slot-picker card">
+      <div class="calendar-strip" id="calendarStrip">
+        {% for d in dates %}
+          {% with ds=d|date:"Y-m-d" %}
+            <button
+              class="day-pill {% if selected_date == ds %}is-active{% endif %}"
+              data-date="{{ ds }}"
+              type="button">
+              <span class="dow">{{ d|date:"D" }}</span>
+              <span class="day">{{ d|date:"j" }}</span>
+              <span class="mon">{{ d|date:"M"|upper }}</span>
+            </button>
+          {% endwith %}
+        {% endfor %}
+      </div>
+
+      
+      <div class="time-grid" id="timeGrid">
+        {% if cart_items %}
+          {% if slot_status %}
+            {% for s in slot_status %}
+            <button
+              class="time-slot {% if not s.available %}is-disabled{% endif %}"
+              {% if not s.available %}disabled aria-disabled="true"{% endif %}
+              data-time="{{ s.time|time:'H:i' }}"
+              type="button">
+              {{ s.time|time:"h:i A" }}
+              {% if s.available and s.remaining <= 2 %}
+                <span class="badge">{{ s.remaining }} left</span>
+              {% endif %}
+            </button>
+          {% empty %}
+            <p class="no-slots">No slots found for this date.</p>
+          {% endfor %}
+        {% elif slots %}
+          {% for t in slots %}
+            <button class="time-slot" data-time="{{ t }}" type="button">
+              {{ t|time:"h:i A" }}
+            </button>
+          {% empty %}
+            <p class="no-slots">No free slots for this date.</p>
+          {% endfor %}
+        {% else %}
+          {% if selected_date %}
+            <p class="no-slots">No slots found for this date.</p>
+          {% else %}
+            <p class="no-slots">Pick a date to see available times.</p>
+          {% endif %}
+        {% endif %}
+        {% else %}
+          <p class="no-slots">Add services to cart to see available slots.</p>
+        {% endif %}
+      </div>
+      
+
+      
+      <form id="bookingForm" method="post" action="{% url 'confirm_booking' %}" style="display:none;">
+        {% csrf_token %}
+        <input type="hidden" name="date" id="selectedDate" value="{{ selected_date }}">
+        <input type="hidden" name="slot" id="selectedTime">
+      </form>
+    </section>
+
+    
+    <aside class="bill card">
+      
+
+      <h3 class="bill-title">Bill Details</h3>
+
+      <div class="bill-items">
+        
+        {% for item in cart_items %}
+          <div class="bill-item">
+            <div class="avatar" >👤</div>
+            <div class="info">
+              <div class="meta">{{ item.service.category|default:"Service" }}</div>
+              <div class="name">{{ item.service.name }}</div>
+              <div class="price">
+                ₹ {{ item.line_total }}
+              </div>
+              
+              
+              
+            </div>
+            <form method="post" action="{% url 'remove_from_cart' item.id %}">
+              {% csrf_token %}
+              <button class="remove" aria-label="Remove" title="Remove" type="submit">✕</button>
+            </form>
+           
+          </div>
+        {% empty %}
+          <p class="no-items">Cart is empty.</p>
+        {% endfor %}
+      </div>
+
+      <div class="total-row">
+        <span>Total</span>
+        <span class="total">₹ {{ total }}</span>
+      </div>
+
+      
+
+      <div class="cta-wrap">
+        <button id="bookBtn" class="primary-cta" type="button">Book </button>
+        <p class="terms">
+          By booking an appointment you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+        </p>
+      </div>
+    </aside>
+  </div>
+</div>
+
+
+<style>
+:root {
+  --bg: #0e1217;
+  --card: #151f30;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --accent: #22d3ee;
+  --accent-hover: #06b6d4;
+  --ring: #1e293b;
+  --stroke: #273549;
+  --pill: #1e2532; 
+  --pill-active: #0f172a;
+  --btn-border: #334155;
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --danger: #ef4444;
+}
+
+
+.container{max-width:1100px; margin:0 auto; padding:24px;}
+.cart-header{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;}
+.cart-header h2{font-size:26px; margin:0 0 6px;}
+.cart-header .sub{color:var(--muted); margin:0;}
+.cart-header .support{color:var(--accent); text-decoration:none;}
+.cart-grid{display:grid; grid-template-columns:1.2fr .8fr; gap:20px;}
+.card{background:var(--card); border:1px solid var(--stroke); border-radius:12px; padding:16px;}
+.input{width:100%; background:#0f1524; color:var(--text); border:1px solid var(--stroke); border-radius:8px; padding:12px;}
+.calendar-strip{display:flex; gap:10px; overflow:auto; padding:12px 0;}
+.day-pill{display:flex; flex-direction:column; align-items:center; gap:2px; padding:10px 14px; border-radius:12px; border:1px solid var(--stroke); background:var(--pill); color:var(--text); cursor:pointer;}
+.day-pill .dow{font-size:12px; color:var(--muted);}
+.day-pill .day{font-weight:700;}
+.day-pill.is-active{background:var(--pill-active); box-shadow:inset 0 0 0 1px var(--accent);}
+.day-pill:hover { border-color: var(--accent); background: var(--pill-active); }
+.time-slot:hover { border-color: var(--accent); background: #152033; }
+.primary-cta:hover { background: var(--primary-hover); }
+.primary-cta {
+  background: linear-gradient(to right, var(--primary), #60a5fa);
+  box-shadow: 0 4px 12px rgba(59,130,246,0.4);
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.primary-cta:hover {
+  box-shadow: 0 6px 16px rgba(59,130,246,0.6);
+}
+.time-slot .badge {
+  background: var(--danger);
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+
+
+.time-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:8px; max-height:520px; overflow:auto; padding-right:4px;}
+.time-slot{padding:10px 0; border-radius:8px; background:#0f1524; border:1px solid var(--btn-border); color:var(--text); cursor:pointer;}
+.time-slot:hover{border-color:var(--accent);}
+.time-slot.is-selected{border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent);}
+.time-slot.is-disabled{color:#9aa3b2; background:#0d1220; border-color:#2a3140; cursor:not-allowed; opacity:0.6;}
+.time-slot .badge{margin-left:6px; font-size:11px; color:#fff; background:#ef4444; border-radius:8px; padding:2px 6px;}
+.bill .offer-row{margin-bottom:10px;}
+.offer-btn{width:100%; display:flex; align-items:center; gap:8px; justify-content:flex-start; padding:10px 12px; border-radius:10px; background:#0f1524; border:1px dashed var(--btn-border); color:var(--text);}
+.bill-title{margin:10px 0 6px; font-size:18px; color: white;}
+.bill-items{display:flex; flex-direction:column; gap:12px;}
+.bill-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--stroke);
+  border-radius: 12px;
+  background: #1b2433;
+  padding-left: 6px;
+}
+
+.bill-item .avatar {
+  width: 36px;
+  height: 36px;
+  font-size: 16px;
+  background: #111827;
+  border: 1px solid var(--ring);
+  border-radius: 8px;
+  justify-content: center;
+  margin-left: 0px;
+}
+
+.bill-item .meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 2px;
+  
+}
+
+.bill-item .name {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text); 
+  line-height: 1.3;
+}
+
+.bill-item .desc {
+  font-size: 13px;
+  color: #cbd5e1;
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.bill-item .price {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-top: 6px;
+}
+
+.bill-item .edit {
+  font-size: 12px;
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.bill-item .remove {
+  background: transparent;
+  border: none;
+  color: var(--danger);
+  font-size: 16px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.bill-item .remove:hover {
+  color: #f87171;
+}
+.total-row{display:flex; justify-content:space-between; margin-top:12px; padding-top:10px; border-top:1px solid var(--stroke); color:white}
+.total-row .total{font-weight:700;}
+.disclaimer{color:var(--muted); font-size:12px; margin:10px 0 0;}
+.cta-wrap{position:sticky; bottom:0; background:linear-gradient(180deg, transparent, var(--card) 30%); padding-top:14px;}
+.primary-cta{width:100%; background:var(--primary); color:#fff; border:none; border-radius:10px; padding:12px; font-weight:600; cursor:pointer;}
+.terms{color:var(--muted); font-size:12px; text-align:center; margin:8px 0 0;}
+.terms a{color:var(--accent); text-decoration:none;}
+.no-slots,.no-items{color:var(--muted); font-size:14px;}
+@media (max-width: 900px){
+  .cart-grid{grid-template-columns:1fr;}
+  .time-grid{grid-template-columns:repeat(3,1fr);}
+}
+@media (max-width: 520px){
+  .time-grid{grid-template-columns:repeat(2,1fr);}
+  .cart-header h2{font-size:22px;}
+}
+
+</style>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+
+function ensureFlashWrap() {
+  let wrap = document.querySelector('.flash-wrap');
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.className = 'flash-wrap';
+    document.body.appendChild(wrap);
+  }
+  return wrap;
+}
+function showInline(kind, text) {
+  const wrap = ensureFlashWrap();
+  const node = document.createElement('div');
+  node.className = `flash ${kind}`;
+  node.textContent = text;
+  wrap.appendChild(node);
+  setTimeout(()=> node.remove(), 4500);
+}
+function showSuccess(msg){ showInline('success', msg || 'Success'); }
+function showError(msg){ showInline('error', msg || 'Payment failed'); }
+function showWarning(msg){ showInline('warning', msg || 'Please check and try again'); }
+
+function isCartEmpty() {
+  return document.querySelectorAll('.bill .bill-items .bill-item').length === 0;
+}
+function setSelectedTimeButton(btn){
+  document.querySelectorAll('.time-slot.is-selected').forEach(b=>b.classList.remove('is-selected'));
+  if(btn){ btn.classList.add('is-selected'); }
+}
+function navigateToDate(dateStr, selectedDateInput){
+  if (selectedDateInput) selectedDateInput.value = dateStr;
+  const url = new URL(window.location.href);
+  url.searchParams.set('date', dateStr);
+  window.location.href = url.toString();
+}
+
+
+async function openPayment(paymentData) {
+  return new Promise((resolve) => {
+    const options = {
+      key: paymentData.key,
+      order_id: paymentData.order_id,
+      amount: paymentData.amount,
+      currency: paymentData.currency || "INR",
+      name: paymentData.name || "Payment",
+      description: paymentData.description || "Salon Booking",
+
+      handler: async function (response) {
+        try {
+          
+          const verifyRes = await fetch(`/payments/verify/${paymentData.order_id}/`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCookie("csrftoken"),
+            },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            }),
+          });
+
+          const verifyData = await verifyRes.json();
+          if (verifyData && verifyData.success) {
+            showSuccess("Payment successful, booking confirmed");
+            resolve(true);
+          } else {
+            showError("Payment verification failed");
+            resolve(false);
+          }
+        } catch (err) {
+          showError("Payment verification error");
+          resolve(false);
+        }
+      },
+
+      modal: {
+        ondismiss: function () {
+          showError("Payment cancelled");
+          resolve(false);
+        },
+      },
+      theme: { color: "#3399cc" },
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+  });
+}
+
+
+
+(function(){
+  const dateSelect = document.getElementById('dateSelect');
+  const strip = document.getElementById('calendarStrip');
+  const timeGrid = document.getElementById('timeGrid');
+  const bookingForm = document.getElementById('bookingForm');
+  const selectedDateInput = document.getElementById('selectedDate');
+  const selectedTimeInput = document.getElementById('selectedTime');
+  const bookBtn = document.getElementById('bookBtn');
+
+  if(dateSelect){
+    dateSelect.addEventListener('change', (e)=>{
+      navigateToDate(e.target.value, selectedDateInput);
+    });
+  }
+  if(strip){
+    strip.addEventListener('click', (e)=>{
+      const btn = e.target.closest('.day-pill');
+      if(!btn) return;
+      const ds = btn.getAttribute('data-date');
+      if (selectedDateInput) selectedDateInput.value = ds;
+      navigateToDate(ds, selectedDateInput);
+    });
+  }
+  if(timeGrid){
+    timeGrid.addEventListener('click', (e)=>{
+      const btn = e.target.closest('.time-slot');
+      if(!btn || btn.disabled) return;
+      const val = btn.getAttribute('data-time');
+      selectedTimeInput.value = val;
+      setSelectedTimeButton(btn);
+    });
+  }
+
+  if (bookBtn) {
+    bookBtn.addEventListener('click', async () => {
+      if (isCartEmpty()) { showWarning('Please add items to cart'); return; }
+
+      const dateVal = selectedDateInput.value;
+      const timeVal = selectedTimeInput.value;
+      if (!dateVal || !timeVal) { showWarning('Please select date and time'); return; }
+
+      bookBtn.disabled = true;
+
+      try {
+        const formData = new FormData(bookingForm);
+        const res = await fetch(bookingForm.action, {
+          method: 'POST',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' },
+          body: formData
+        });
+
+        const data = await res.json();
+        if (!data || !data.success || !Array.isArray(data.booking_ids) || data.booking_ids.length === 0) {
+          showError('Booking failed');
+          bookBtn.disabled = false;
+          return;
+        }
+
+       
+        const totalAmount = parseFloat(document.querySelector('.total').textContent.replace('₹', '').trim());
+
+        const paymentRes = await fetch(`/payments/create_multiple/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCookie('csrftoken')
+          },
+          body: JSON.stringify({ booking_ids: data.booking_ids, amount: totalAmount })
+        });
+        const paymentData = await paymentRes.json();
+
+        if (!paymentData.success) {
+          showError(paymentData.error || 'Payment creation failed');
+          bookBtn.disabled = false;
+          return;
+        }
+
+        const paid = await openPayment(paymentData);
+
+        if (paid) {
+          setTimeout(() => {
+            const url = new URL(window.location.href);
+            url.searchParams.set('date', dateVal);
+            window.location.href = url.toString();
+          }, 800);
+        } else {
+          bookBtn.disabled = false;
+        }
+
+      } catch (e) {
+        showError('Booking failed');
+        bookBtn.disabled = false;
+      }
+    });
+  }
+
+})();
+
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+</script>
+
+
+
+
+
+
+
+
+
+{% endblock %}

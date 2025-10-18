@@ -1,0 +1,52 @@
+<div class="table-wrapper">
+    <table class="dashboard-table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Phone</th>
+          <th>Service</th>
+          <th>Staff</th>
+          <th>Date</th>
+          <th>Slot</th>
+          <th>Status</th>
+          <th>Payment</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for booking in bookings %}
+          <tr>
+            <td>{{ booking.user_name }}</td>
+            <td>{{ booking.user }}</td>
+            <td>{{ booking.service.name }}</td>
+            <td> {{ booking.staff.user.get_full_name|default_if_none:"" }}
+    {% if not booking.staff.user.get_full_name %}
+        {{ booking.staff.user.username|default_if_none:"" }}
+    {% endif %}
+    {% if not booking.staff.user.get_full_name and not booking.staff.user.username %}
+        {{ booking.staff.name }}
+    {% endif %}</td>
+            <td>{{ booking.date }}</td>
+            <td>{{ booking.slot }}</td>
+            <td><span class="badge {{ booking.status }}">{{ booking.get_status_display }}</span></td>
+            <td><span class="badge {{booking.payment_status}}">{{booking.payment_status}}</span></td>
+            <td>
+              {% if booking.status == "upcoming" or booking.status == "pending" %}
+                <a href="{% url 'update_booking_status' booking.id 'completed' %}" class="btn btn-success">Complete</a>
+                <a href="{% url 'update_booking_status' booking.id 'canceled' %}" class="btn btn-danger">Cancel</a>
+              {% elif booking.status == "completed" %}
+                <span class="badge completed">Completed</span>
+              {% elif booking.status == "canceled" %}
+                <span class="badge canceled">Canceled</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="8">No bookings found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  
+    
+  
