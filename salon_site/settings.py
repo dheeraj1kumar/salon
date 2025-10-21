@@ -163,8 +163,9 @@ SECRET_KEY = config("DJANGO_SECRET_KEY", default="dummysecret")
 DEBUG = config("DJANGO_DEBUG", default=True, cast=bool)  # Default True for dev
 
 ALLOWED_HOSTS = config(
-    "DJANGO_ALLOWED_HOSTS", default="localhost,127.0.0.1"
+    "DJANGO_ALLOWED_HOSTS", default="localhost
 ).split(",")
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "34.254.199.64"]
 
 # -----------------------------
 # Installed Apps
