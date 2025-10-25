@@ -12,8 +12,7 @@ WORKDIR /code
 COPY requirements.txt /code/
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
-python manage.py makemigrations 
-python manage.py migrate
+
 
 
 # Copy project files
