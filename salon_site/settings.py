@@ -163,14 +163,14 @@ SECRET_KEY = config("DJANGO_SECRET_KEY", default="dummysecret")
 DEBUG = config("DJANGO_DEBUG", default=True, cast=bool)  # Default True for dev
 
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "34.248.243.255"]
+#ALLOWED_HOSTS = ["localhost", "127.0.0.1", "34.248.243.255"]
 
 
 SECRET_KEY = 'django-insecure-xyz123'
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['3.252.40.87', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['34.248.133.146', 'localhost', '127.0.0.1']
 
 
 
