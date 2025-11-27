@@ -33,35 +33,6 @@ pipeline {
             }
         }
 
-  stage('DB Update') {
-    steps {
-        echo "🔧 Running Django migrations before deployment..."
-
-        sh '''
-            set -e
-
-            if [ ! -f docker-compose.yml ]; then
-                echo "❌ docker-compose.yml not found!"
-                exit 1
-            fi
-
-            echo "📦 Starting DB service..."
-            docker-compose up -d db
-
-            echo "⏳ Waiting for PostgreSQL to become ready..."
-            sleep 10
-
-            echo "🚀 Running Django migrations inside container..."
-            docker-compose run --rm web sh -c "
-                python manage.py makemigrations &&
-                python manage.py migrate
-            "
-
-            echo "✅ Database successfully migrated."
-        '''
-    }
-}
-
 
         stage('Deploy') {
             steps {
