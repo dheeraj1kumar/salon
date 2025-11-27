@@ -5,10 +5,20 @@ services:
     build: .
     ports:
       - "8000:8000"
+
+    environment:
+      DJANGO_SUPERUSER_USERNAME: "8102780474"
+      DJANGO_SUPERUSER_EMAIL: "admin@example.com"
+      DJANGO_SUPERUSER_PASSWORD: "12345"
+
     command: >
-      sh -c "python manage.py makemigrations &&
-             python manage.py migrate &&
-             python manage.py runserver 0.0.0.0:8000"
+      sh -c "
+        python manage.py makemigrations &&
+        python manage.py migrate &&
+        (python manage.py createsuperuser --noinput || true) &&
+        python manage.py runserver 0.0.0.0:8000
+      "
+
     volumes:
       - .:/code
 
