@@ -232,16 +232,32 @@ WSGI_APPLICATION = "salon_site.wsgi.application"
 # -----------------------------
 # Database (PostgreSQL)
 # -----------------------------
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'salondb',
+#         'USER': 'postgres',
+#         'PASSWORD': '12345',
+#         # 'HOST': 'db',  # <--- works only inside Docker
+#         'HOST': 'localhost',
+#         'PORT': 5432,
+#     }
+# }
+
+
+import os
+
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": config("POSTGRES_DB", default="salondb"),
-        "USER": config("POSTGRES_USER", default="postgres"),
-        "PASSWORD": config("POSTGRES_PASSWORD", default="postgres"),
-        "HOST": config("POSTGRES_HOST", default="db"),
-        "PORT": config("POSTGRES_PORT", default="5432"),
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME', 'salondb'),
+        'USER': os.environ.get('DB_USER', 'salonuser'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'salonpass'),
+        'HOST': os.environ.get('DB_HOST', 'db'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
+
 
 # -----------------------------
 # Custom User Model
