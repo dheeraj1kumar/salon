@@ -151,28 +151,23 @@ from pathlib import Path
 from decouple import config
 import os
 
-# Base directory
+# -----------------------------
+# Base Directory
+# -----------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # -----------------------------
-# Security
+# Security Settings
 # -----------------------------
-SECRET_KEY = config("DJANGO_SECRET_KEY", default="dummysecret")
+SECRET_KEY = config("DJANGO_SECRET_KEY", default="dummy_secret_key")
 
+DEBUG = config("DJANGO_DEBUG", default=True, cast=bool)
 
-DEBUG = config("DJANGO_DEBUG", default=True, cast=bool)  # Default True for dev
-
-
-#ALLOWED_HOSTS = ["localhost", "127.0.0.1", "34.248.243.255"]
-
-
-SECRET_KEY = 'django-insecure-xyz123'
-
-DEBUG = True
-
-ALLOWED_HOSTS = ['13.202.35.125', 'localhost', '127.0.0.1']
-
-
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    "13.202.35.125",   # your EC2 public IP
+]
 
 # -----------------------------
 # Installed Apps
@@ -184,7 +179,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # your apps
+
+    # Your apps
     "dashboard",
     "user",
     "booking",
@@ -200,9 +196,9 @@ INSTALLED_APPS = [
 # -----------------------------
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -225,7 +221,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "booking.context_processors.cart_count",  # custom
+                "booking.context_processors.cart_count",
             ],
         },
     },
@@ -234,17 +230,26 @@ TEMPLATES = [
 WSGI_APPLICATION = "salon_site.wsgi.application"
 
 # -----------------------------
-# Database
+# Database (PostgreSQL)
 # -----------------------------
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": config("POSTGRES_DB", default="salondb"),
+        "USER": config("POSTGRES_USER", default="postgres"),
+        "PASSWORD": config("POSTGRES_PASSWORD", default="postgres"),
+        "HOST": config("POSTGRES_HOST", default="db"),
+        "PORT": config("POSTGRES_PORT", default="5432"),
     }
 }
 
 # -----------------------------
-# Password validation
+# Custom User Model
+# -----------------------------
+AUTH_USER_MODEL = "user.CustomUser"
+
+# -----------------------------
+# Password Validators
 # -----------------------------
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -252,9 +257,6 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
-
-# Custom user model
-AUTH_USER_MODEL = "user.CustomUser"
 
 # -----------------------------
 # Internationalization
@@ -286,20 +288,17 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # -----------------------------
 # Third Party API Keys
 # -----------------------------
-# Razorpay
 RAZORPAY_KEY_ID = config("RAZORPAY_KEY_ID", default="")
 RAZORPAY_KEY_SECRET = config("RAZORPAY_KEY_SECRET", default="")
 
-# Gemini
 GEMINI_API_KEY = config("GEMINI_API_KEY", default="")
 
-# Twilio
 TWILIO_ACCOUNT_SID = config("TWILIO_ACCOUNT_SID", default="")
 TWILIO_AUTH_TOKEN = config("TWILIO_AUTH_TOKEN", default="")
 TWILIO_PHONE_NUMBER = config("TWILIO_PHONE_NUMBER", default="")
 
 # -----------------------------
-# Email (SMTP - Gmail example)
+# Email (SMTP - Gmail)
 # -----------------------------
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
@@ -316,6 +315,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 7  # 7 days
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = config("DJANGO_SESSION_SECURE", default=False, cast=bool)
+
 CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SECURE = config("DJANGO_CSRF_SECURE", default=False, cast=bool)
 
