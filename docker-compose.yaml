@@ -1,19 +1,39 @@
 version: '3.9'
 
 services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: salon
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
   web:
     build: .
+    depends_on:
+      - db
     ports:
       - "8000:8000"
+    environment:
+      DB_NAME: salon
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: db
+      DB_PORT: 5432
 
     command: >
       sh -c "
         python manage.py makemigrations &&
         python manage.py migrate &&
-        python manage.py create_default_superuser &&
         python manage.py runserver 0.0.0.0:8000
       "
 
     volumes:
       - .:/code
 
+volumes:
+  postgres_data:
