@@ -1,38 +1,26 @@
-version: '3.9'
+version: "3.9"
 
 services:
   db:
     image: postgres:15
-    container_name: salon_postgres
     environment:
       POSTGRES_DB: salondb
-      POSTGRES_USER: salonuser
-      POSTGRES_PASSWORD: salonpass
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    restart: always
+    ports:
+      - "5432:5432"
 
   web:
     build: .
-    container_name: salon_web
-    command: sh -c "
-      python manage.py migrate &&
-      python manage.py runserver 0.0.0.0:8000
-    "
+    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
     ports:
       - "8000:8000"
     depends_on:
       - db
-    environment:
-      DB_NAME: salondb
-      DB_USER: salonuser
-      DB_PASSWORD: salonpass
-      DB_HOST: db
-      DB_PORT: 5432
 
 volumes:
   postgres_data:
