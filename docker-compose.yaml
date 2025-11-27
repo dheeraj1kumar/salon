@@ -1,45 +1,38 @@
-version: "3.9"
+version: '3.9'
 
 services:
   db:
     image: postgres:15
+    container_name: salon_postgres
     environment:
       POSTGRES_DB: salondb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: salonuser
+      POSTGRES_PASSWORD: salonpass
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: always
 
   web:
     build: .
+    container_name: salon_web
+    command: sh -c "
+      python manage.py migrate &&
+      python manage.py runserver 0.0.0.0:8000
+    "
     volumes:
-      - .:/code
+      - .:/app
     ports:
       - "8000:8000"
-    environment:
-      POSTGRES_DB: salondb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_HOST: db
-      POSTGRES_PORT: 5432
-
-      DJANGO_SUPERUSER_USERNAME: "8102780474"
-      DJANGO_SUPERUSER_PASSWORD: "12345"
-      DJANGO_SUPERUSER_EMAIL: "admin@example.com"
-
     depends_on:
       - db
-
-    command: >
-      sh -c "
-        python manage.py makemigrations &&
-        python manage.py migrate &&
-        python manage.py createsuperuser --noinput || true &&
-        python manage.py runserver 0.0.0.0:8000
-      "
+    environment:
+      DB_NAME: salondb
+      DB_USER: salonuser
+      DB_PASSWORD: salonpass
+      DB_HOST: db
+      DB_PORT: 5432
 
 volumes:
   postgres_data:
-
