@@ -33,13 +33,11 @@ pipeline {
             }
         }
 
-
         stage('Deploy') {
             steps {
                 sh '''
                     echo "🚀 Deploying application..."
-                     kubernetesDeploy(configs: "deploymentservice.yml", kubeconfigId: "kubernetes")
-
+                    kubernetesDeploy(configs: "deploymentservice.yml", kubeconfigId: "kubernetes")
                 '''
             }
         }
@@ -47,8 +45,10 @@ pipeline {
 
     post {
         always {
-            echo "🧹 Cleaning up..."
-            sh 'docker image prune -f || true'
+            node {
+                echo "🧹 Cleaning up..."
+                sh 'docker image prune -f || true'
+            }
         }
     }
 }
