@@ -38,8 +38,8 @@ pipeline {
             steps {
                 sh '''
                     echo "🚀 Deploying application..."
-                    docker-compose down
-                    docker-compose up -d
+                     kubernetesDeploy(configs: "deploymentservice.yml", kubeconfigId: "kubernetes")
+
                 '''
             }
         }
